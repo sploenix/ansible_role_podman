@@ -21,7 +21,7 @@
             { '{{ pod[0] }}':
             { 'name': '{{ pod[1].zfs.pool }}/{{ pod[0] }}', 'state': 'present' } }
       ansible.builtin.import_role:
-        name: sploenix.base.zfs
+        name: "{{ __fqcn_zfs__ }}"
 
 - name: "Create networks for pod {{ pod[0] }}"
   when: pod[1].networks is defined
