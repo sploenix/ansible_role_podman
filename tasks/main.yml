@@ -1,0 +1,27 @@
+---
+- name: "Configure podman networks"
+  when: podnet | d(network[0]) == network[0]
+  ansible.builtin.include_tasks: network.yml
+  loop: "{{ (podman.networks | d({})).items()}}"
+  loop_control:
+    loop_var: network
+    label: "{{ network[0] }}"
+  tags: network
+
+- name: "Configure pods"
+  when: podpod | d(pod[0]) == pod[0]
+  ansible.builtin.include_tasks: pod.yml
+  loop: "{{ (podman.pods | d({})).items() }}"
+  loop_control:
+    loop_var: pod
+    label: "{{ pod[0] }}"
+  tags: pod
+
+- name: "Configure podman containers"
+  when: podcont | d(containter[0]) == container[0]
+  ansible.builtin.include_tasks: container.yml
+  loop: "{{ (podman.containers | d({})).items() }}"
+  loop_control:
+    loop_var: container
+    label: "{{ container[0] }}"
+  tags: container

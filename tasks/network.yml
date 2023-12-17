@@ -1,0 +1,25 @@
+---
+- block:
+    - name: "Configure podman network {{ network[0] }}"
+      containers.podman.podman_network:
+        debug: "{{ network[1].debug | d(omit) }}"
+        disable_dns: "{{ network[1].disable_dns | d(omit) }}"
+        driver: "{{ network[1].driver | d(omit) }}"
+        executable: "{{ network[1].executable | d(omit) }}"
+        force: "{{ network[1].force | d(omit) }}"
+        gateway: "{{ network[1].gateway | d(omit) }}"
+        internal: "{{ network[1].internal | d(omit) }}"
+        ip_range: "{{ network[1].ip_range | d(omit) }}"
+        ipv6: "{{ network[1].ipv6 | d(omit) }}"
+        # deprecated
+        #macvlan: "{{ network[1].macvlan | d(omit) }}"
+        name: "{{ network[0] }}"
+        opt: "{{ network[1].opt | d(omit) }}"
+        recreate: "{{ network[1].recreate | d(omit) }}"
+        state: "{{ network[1].state | d(omit) }}"
+        subnet: "{{ network[1].subnet | d(omit) }}"
+      register: out
+
+#    - debug:
+#        var: out
+  tags: network
