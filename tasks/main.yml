@@ -9,7 +9,7 @@
   tags: network
 
 - name: "Configure pods"
-  when: podpod | d(pod[0]) == pod[0]
+  when: podname | d(pod[0]) == pod[0]
   ansible.builtin.include_tasks: pod.yml
   loop: "{{ (podman.pods | d({})).items() }}"
   loop_control:
