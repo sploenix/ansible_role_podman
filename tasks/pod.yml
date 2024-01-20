@@ -86,6 +86,7 @@
   when: pod[1].containers is defined
   vars:
     use_pod: "{{ pod[0] }}"
+    basedir: "{{ pod[1].data_basedir + '/' + pod[0] | d('') }}"
   ansible.builtin.include_tasks: container.yml
   loop: "{{ pod[1].containers.items() }}"
   loop_control:
