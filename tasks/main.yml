@@ -15,7 +15,9 @@
   loop_control:
     loop_var: pod
     label: "{{ pod[0] }}"
-  tags: pod
+  tags:
+    - pod
+    - pull
 
 - name: "Configure podman containers"
   when: podcont | d(containter[0]) == container[0]
@@ -24,4 +26,6 @@
   loop_control:
     loop_var: container
     label: "{{ container[0] }}"
-  tags: container
+  tags:
+    - container
+    - pull

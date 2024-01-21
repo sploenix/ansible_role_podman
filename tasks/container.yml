@@ -3,6 +3,7 @@
     - name: "Store container properties to variable"
       ansible.builtin.set_fact:
         c: "{{ container[1] }}"
+      tags: always
 
     - name: "Pull image {{ container[1].image }} for container {{ container[0] }}"
       when: c.state is not defined or
@@ -14,15 +15,13 @@
       tags: pull
 
     - name: "Update volume strings"
-      ansible.builtin.set_fact:
+      vars:
         volumes: >
           [
           {% for v in c.volume %}
           '{{ v | replace("__basedir__", basedir | d("")) }}',
           {% endfor %}
           ]
-
-    - name: "Merge new volume strings to container dictionary"
       ansible.builtin.set_fact:
         c: "{{ c | combine({'volume': volumes}, recursive=true) }}"
 
