@@ -15,6 +15,7 @@
       tags: pull
 
     - name: "Update volume strings"
+      when: c.volume is defined
       vars:
         volumes: >
           [
