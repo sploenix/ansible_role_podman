@@ -1,23 +1,23 @@
 ---
 - block:
-    - name: "Configure podman network {{ network[0] }}"
+    - name: "Configure podman network {{ podnet[0] }}"
       containers.podman.podman_network:
-        debug: "{{ network[1].debug | d(omit) }}"
-        disable_dns: "{{ network[1].disable_dns | d(omit) }}"
-        driver: "{{ network[1].driver | d(omit) }}"
-        executable: "{{ network[1].executable | d(omit) }}"
-        force: "{{ network[1].force | d(omit) }}"
-        gateway: "{{ network[1].gateway | d(omit) }}"
-        internal: "{{ network[1].internal | d(omit) }}"
-        ip_range: "{{ network[1].ip_range | d(omit) }}"
-        ipv6: "{{ network[1].ipv6 | d(omit) }}"
+        debug: "{{ podnet[1].debug | d(omit) }}"
+        disable_dns: "{{ podnet[1].disable_dns | d(omit) }}"
+        driver: "{{ podnet[1].driver | d(omit) }}"
+        executable: "{{ podnet[1].executable | d(omit) }}"
+        force: "{{ podnet[1].force | d(omit) }}"
+        gateway: "{{ podnet[1].gateway | d(omit) }}"
+        internal: "{{ podnet[1].internal | d(omit) }}"
+        ip_range: "{{ podnet[1].ip_range | d(omit) }}"
+        ipv6: "{{ podnet[1].ipv6 | d(omit) }}"
         # deprecated
-        #macvlan: "{{ network[1].macvlan | d(omit) }}"
-        name: "{{ network[0] }}"
-        opt: "{{ network[1].opt | d(omit) }}"
-        recreate: "{{ network[1].recreate | d(omit) }}"
-        state: "{{ network[1].state | d(omit) }}"
-        subnet: "{{ network[1].subnet | d(omit) }}"
+        #macvlan: "{{ podnet[1].macvlan | d(omit) }}"
+        name: "{{ podnet[0] }}"
+        opt: "{{ podnet[1].opt | d(omit) }}"
+        recreate: "{{ podnet[1].recreate | d(omit) }}"
+        state: "{{ podnet[1].state | d(omit) }}"
+        subnet: "{{ podnet[1].subnet | d(omit) }}"
       register: out
 
 #    - debug:

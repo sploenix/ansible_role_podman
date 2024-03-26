@@ -1,11 +1,18 @@
 ---
+- name: "Install required packages"
+  ansible.builtin.import_role:
+    name: "{{ __packages_role__ }}"
+  vars:
+    packages_present: "{{ packages_present_podman }}"
+  tags: install
+
 - name: "Configure podman networks"
-  when: podnet | d(network[0]) == network[0]
+  when: network | d(podnet[0]) == podnet[0]
   ansible.builtin.include_tasks: network.yml
   loop: "{{ (podman.networks | d({})).items()}}"
   loop_control:
-    loop_var: network
-    label: "{{ network[0] }}"
+    loop_var: podnet
+    label: "{{ podnet[0] }}"
   tags: network
 
 - name: "Configure pods"

@@ -1,7 +1,7 @@
 ---
 - name: "Stat data directory of pod {{ pod[0] }}"
   ansible.builtin.stat:
-    path: "{{ pod[1].data_basedir }}/{{ pod[0] }}"
+    path: "{{ pod[1].data_basedir | d(data_basedir) }}/{{ pod[0] }}"
   register: image_dir_stats
 
 - name: "Create data directory for pod {{ pod[0] }}"
@@ -30,7 +30,7 @@
   ansible.builtin.include_tasks: network.yml
   loop: "{{ pod[1].networks.items() }}"
   loop_control:
-    loop_var: network
+    loop_var: podnet
 
 # wrapper around containers.podman.podman_pod
 - name: "Create pod {{ pod[0] }}"
@@ -53,7 +53,6 @@
     dns_opt: "{{ pod[1].dns_opt | d(omit) }}"
     dns_search: "{{ pod[1].dns_search | d(omit) }}"
     executable: "{{ pod[1].executable | d(omit) }}"
-    generate_systemd: "{{ pod[1].generate_systemd | d(omit) }}"
     gidmap: "{{ pod[1].gidmap | d(omit) }}"
     hostname: "{{ pod[1].hostname | d(pod[0]) }}"
     infra: "{{ true if infra else false }}"
@@ -85,13 +84,23 @@
   when: pod[1].containers is defined
   vars:
     use_pod: "{{ pod[0] }}"
-    basedir: "{{ pod[1].data_basedir + '/' + pod[0] | d('') }}"
+    basedir: "{{ pod[1].data_basedir | d(data_basedir) + '/' + pod[0] | d('') }}"
   ansible.builtin.include_tasks: container.yml
   loop: "{{ pod[1].containers.items() }}"
   loop_control:
     loop_var: container
   tags:
     - pull
+
+- name: Generate systemd unit file for pod
+  when: pod[1].generate_systemd is defined
+  containers.podman.podman_generate_systemd:
+    name: "{{ pod[0] }}"
+    new: true
+    no_header: true
+    dest: "{{ pod[1].generate_systemd.dest | d('/etc/systemd/system') }}"
+    requires: "{{ pod[1].generate_systemd.requires | d(omit) }}"
+  notify: systemd daemon-reload
 
 - name: "Restart infra container"
   when: pod[1].share is defined and

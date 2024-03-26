@@ -1,1 +1,8 @@
 ---
+packages_present_podman:
+  - podman
+
+# can be overridden for every pod
+data_basedir: /srv/container
+
+__packages_role__: sploenix.base.packages
