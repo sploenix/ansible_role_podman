@@ -109,3 +109,4 @@
     name: "{{ pod[1].infra_name | d('infra_' + pod[0]) }}"
     state: started
     force_restart: true
+  ignore_errors: "{{ ansible_check_mode }}"

@@ -8,6 +8,7 @@
     - name: "Pull image {{ container[1].image }} for container {{ container[0] }}"
       when: c.state is not defined or
             c.state in ['restarted', 'started']
+            and not ansible_check_mode
       containers.podman.podman_image:
         name: "{{ c.image }}"
         pull: true

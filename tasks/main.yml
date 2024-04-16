@@ -1,38 +1,40 @@
 ---
-- name: "Install required packages"
-  ansible.builtin.import_role:
-    name: "{{ __packages_role__ }}"
-  vars:
-    packages_present: "{{ packages_present_podman }}"
-  tags: install
+- when: podman is defined
+  block:
+    - name: "Install required packages"
+      ansible.builtin.import_role:
+        name: "{{ __packages_role__ }}"
+      vars:
+        packages_present: "{{ packages_present_podman }}"
+      tags: install
 
-- name: "Configure podman networks"
-  when: network | d(podnet[0]) == podnet[0]
-  ansible.builtin.include_tasks: network.yml
-  loop: "{{ (podman.networks | d({})).items()}}"
-  loop_control:
-    loop_var: podnet
-    label: "{{ podnet[0] }}"
-  tags: network
+    - name: "Configure podman networks"
+      when: network | d(podnet[0]) == podnet[0]
+      ansible.builtin.include_tasks: network.yml
+      loop: "{{ (podman.networks | d({})).items()}}"
+      loop_control:
+        loop_var: podnet
+        label: "{{ podnet[0] }}"
+      tags: network
 
-- name: "Configure pods"
-  when: podname | d(pod[0]) == pod[0]
-  ansible.builtin.include_tasks: pod.yml
-  loop: "{{ (podman.pods | d({})).items() }}"
-  loop_control:
-    loop_var: pod
-    label: "{{ pod[0] }}"
-  tags:
-    - pod
-    - pull
+    - name: "Configure pods"
+      when: podname | d(pod[0]) == pod[0]
+      ansible.builtin.include_tasks: pod.yml
+      loop: "{{ (podman.pods | d({})).items() }}"
+      loop_control:
+        loop_var: pod
+        label: "{{ pod[0] }}"
+      tags:
+        - pod
+        - pull
 
-- name: "Configure podman containers"
-  when: podcont | d(containter[0]) == container[0]
-  ansible.builtin.include_tasks: container.yml
-  loop: "{{ (podman.containers | d({})).items() }}"
-  loop_control:
-    loop_var: container
-    label: "{{ container[0] }}"
-  tags:
-    - container
-    - pull
+    - name: "Configure podman containers"
+      when: podcont | d(containter[0]) == container[0]
+      ansible.builtin.include_tasks: container.yml
+      loop: "{{ (podman.containers | d({})).items() }}"
+      loop_control:
+        loop_var: container
+        label: "{{ container[0] }}"
+      tags:
+        - container
+        - pull
