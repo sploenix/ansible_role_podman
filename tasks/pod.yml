@@ -89,6 +89,7 @@
   loop: "{{ pod[1].containers.items() }}"
   loop_control:
     loop_var: container
+    label: container[0]
   tags:
     - pull
 

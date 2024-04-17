@@ -6,6 +6,7 @@
         name: "{{ __packages_role__ }}"
       vars:
         packages_present: "{{ packages_present_podman }}"
+        call_from: podman role
       tags: install
 
     - name: "Configure podman networks"
