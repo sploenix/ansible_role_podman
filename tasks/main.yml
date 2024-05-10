@@ -10,12 +10,12 @@
       tags: install
 
     - name: "Configure podman networks"
-      when: network | d(podnet[0]) == podnet[0]
+      when: network | d(podnet.name) == podnet.name
       ansible.builtin.include_tasks: network.yml
-      loop: "{{ (podman.networks | d({})).items()}}"
+      loop: "{{ podman.networks | d([]) }}"
       loop_control:
         loop_var: podnet
-        label: "{{ podnet[0] }}"
+        label: "{{ podnet.name }}"
       tags: network
 
     - name: "Configure pods"

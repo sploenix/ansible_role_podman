@@ -24,11 +24,11 @@
         name: "{{ __fqcn_zfs__ }}"
 
 - name: "Create networks for pod {{ pod[0] }}"
-  when: pod[1].networks is defined
+  when: pod[1].network is defined
   vars:
     use_pod: "{{ pod[0] }}"
   ansible.builtin.include_tasks: network.yml
-  loop: "{{ pod[1].networks.items() }}"
+  loop: "{{ pod[1].networks }}"
   loop_control:
     loop_var: podnet
 
@@ -59,7 +59,7 @@
     infra_command: "{{ pod[1].infra_command | d(omit) if infra else omit }}"
     infra_common_pidfile: "{{ pod[1].infra_common_pidfile | d(omit) if infra else omit }}"
     infra_image: "{{ pod[1].infra_image | d(omit) if infra else omit }}"
-    infra_name: "{{ pod[1].infra_name | d('infra_' + pod[0]) if infra else omit }}"
+    infra_name: "{{ pod[1].infra_name | d(pod[0] + '_infra') if infra else omit }}"
     ip: "{{ pod[1].ip | d(omit) }}"
     label: "{{ pod[1].label | d(omit) }}"
     label_file: "{{ pod[1].label_file | d(omit) }}"
@@ -102,12 +102,13 @@
     dest: "{{ pod[1].generate_systemd.dest | d('/etc/systemd/system') }}"
     requires: "{{ pod[1].generate_systemd.requires | d(omit) }}"
   notify: systemd daemon-reload
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: "Restart infra container"
-  when: pod[1].share is defined and
-        pod[1].share
+  when: pod[1].share is defined
+        and pod[1].share
   containers.podman.podman_container:
-    name: "{{ pod[1].infra_name | d('infra_' + pod[0]) }}"
+    name: "{{ pod[1].infra_name | d(pod[0] + '_infra') }}"
     state: started
     force_restart: true
   ignore_errors: "{{ ansible_check_mode }}"
