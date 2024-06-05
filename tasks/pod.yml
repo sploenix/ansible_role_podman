@@ -1,4 +1,5 @@
 ---
+# code: language=ansible
 - name: "Stat data directory of pod {{ pod[0] }}"
   ansible.builtin.stat:
     path: "{{ pod[1].data_basedir | d(data_basedir) }}/{{ pod[0] }}"
@@ -17,18 +18,17 @@
       when: pod[1].zfs is defined
       vars:
         zfs:
-          datasets:  >
+          datasets: >
             { '{{ pod[0] }}':
             { 'name': '{{ pod[1].zfs.pool }}/{{ pod[0] }}', 'state': 'present' } }
       ansible.builtin.import_role:
         name: "{{ __fqcn_zfs__ }}"
 
 - name: "Create networks for pod {{ pod[0] }}"
-  when: pod[1].network is defined
   vars:
     use_pod: "{{ pod[0] }}"
   ansible.builtin.include_tasks: network.yml
-  loop: "{{ pod[1].networks }}"
+  loop: "{{ pod[1].networks | d([]) }}"
   loop_control:
     loop_var: podnet
 
@@ -101,14 +101,5 @@
     no_header: true
     dest: "{{ pod[1].generate_systemd.dest | d('/etc/systemd/system') }}"
     requires: "{{ pod[1].generate_systemd.requires | d(omit) }}"
-  notify: systemd daemon-reload
-  ignore_errors: "{{ ansible_check_mode }}"
-
-- name: "Restart infra container"
-  when: pod[1].share is defined
-        and pod[1].share
-  containers.podman.podman_container:
-    name: "{{ pod[1].infra_name | d(pod[0] + '_infra') }}"
-    state: started
-    force_restart: true
+  notify: "Execute systemd daemon-reload"
   ignore_errors: "{{ ansible_check_mode }}"

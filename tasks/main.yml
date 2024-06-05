@@ -1,5 +1,7 @@
 ---
-- when: podman is defined
+# code: language=ansible
+- name: "Execute podman tasks when podman is defined"
+  when: podman is defined
   block:
     - name: "Install required packages"
       ansible.builtin.import_role:
@@ -30,7 +32,7 @@
         - pull
 
     - name: "Configure podman containers"
-      when: podcont | d(containter[0]) == container[0]
+      when: podcont | d(container[0]) == container[0]
       ansible.builtin.include_tasks: container.yml
       loop: "{{ (podman.containers | d({})).items() }}"
       loop_control:

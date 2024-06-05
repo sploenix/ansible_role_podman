@@ -1,6 +1,9 @@
 ---
-- block:
-    - name: "Store container properties of containter {{ container[0] }} to variable"
+# code: language=ansible
+- name: "Configure podman container instances"
+  tags: container
+  block:
+    - name: "Store container properties of container {{ container[0] }} to variable"
       ansible.builtin.set_fact:
         c: "{{ container[1] }}"
       tags: always
@@ -15,7 +18,7 @@
       register: image_pull_result
       tags: pull
 
-    - name: "Update volume strings for containter {{ container[0] }}"
+    - name: "Update volume strings for container {{ container[0] }}"
       when: c.volume is defined
       vars:
         volumes: >
@@ -27,7 +30,7 @@
       ansible.builtin.set_fact:
         c: "{{ c | combine({'volume': volumes}, recursive=true) }}"
 
-    - name: "Create volumes for containter {{ container[0] }}"
+    - name: "Create volumes for container {{ container[0] }}"
       ansible.builtin.file:
         path: "{{ (container_volume | split(':'))[0] }}"
         state: directory
@@ -38,7 +41,8 @@
       # this is ok - error handling will be added later
       ignore_errors: true
 
-    # wrapper for https://docs.ansible.com/ansible/latest/collections/containers/podman/podman_container_module.html#ansible-collections-containers-podman-podman-container-module
+    # wrapper for 
+    # https://docs.ansible.com/ansible/latest/collections/containers/podman/podman_container_module.html#ansible-collections-containers-podman-podman-container-module
     - name: "Create container {{ container[0] }}"
       containers.podman.podman_container:
         annotation: "{{ c.annotation | d(omit) }}"
@@ -113,7 +117,7 @@
         memory_swappiness: "{{ c.memory_swappiness | d(omit) }}"
         mount: "{{ c.mount | d(omit) }}"
         name: "{{ (use_pod + '_' if use_pod is defined else '') + container[0] }}"
-        network: "{{ (c.network | select()) | d(omit) }}"
+        network: "{{ (c.network | d([]) | select()) | d(omit) }}"
         network_alias: "{{ c.network_alias | d(omit) }}"
         no_hosts: "{{ c.no_hosts | d(omit) }}"
         oom_kill_disable: "{{ c.oom_kill_disable | d(omit) }}"
@@ -158,5 +162,3 @@
 
 #    - ansible.builtin.debug:
 #        var: out
-  tags:
-    - container

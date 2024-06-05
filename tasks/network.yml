@@ -1,5 +1,8 @@
 ---
-- block:
+# code: language=ansible
+- name: "Configure podman network instance"
+  tags: network
+  block:
     - name: "Configure podman network {{ podnet.name }}"
       containers.podman.podman_network:
         debug: "{{ podnet.debug | d(omit) }}"
@@ -11,8 +14,6 @@
         internal: "{{ podnet.internal | d(omit) }}"
         ip_range: "{{ podnet.ip_range | d(omit) }}"
         ipv6: "{{ podnet.ipv6 | d(omit) }}"
-        # deprecated
-        #macvlan: "{{ podnet.macvlan | d(omit) }}"
         name: "{{ podnet.name }}"
         opt: "{{ podnet.opt | d(omit) }}"
         recreate: "{{ podnet.recreate | d(omit) }}"
@@ -22,4 +23,3 @@
 
 #    - debug:
 #        var: out
-  tags: network
