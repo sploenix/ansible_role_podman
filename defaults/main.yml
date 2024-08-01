@@ -1,8 +1,18 @@
 ---
 packages_present_podman:
+  - catatonit
+  - iptables
+  - netavark
   - podman
 
 # can be overridden for every pod
-data_basedir: /srv/container
+data_basedir: /podman
 
-__packages_role__: sploenix.base.packages
+podman_systemd_defaults:
+  create_units: true
+  start: true
+  enable: true
+  dest: /etc/systemd/system
+  new: true
+  wants: network-online.target
+  after: network-online.target

@@ -5,7 +5,7 @@
   block:
     - name: "Install required packages"
       ansible.builtin.import_role:
-        name: "{{ __packages_role__ }}"
+        name: "{{ __fqcn_packages__ }}"
       vars:
         packages_present: "{{ packages_present_podman }}"
         call_from: podman role
@@ -20,13 +20,19 @@
         label: "{{ podnet.name }}"
       tags: network
 
+#    - name: "Verify that pause image is available"
+#      become: true
+#      containers.podman.podman_image:
+#        name: "podman-pause"
+#        pull: true
+
     - name: "Configure pods"
-      when: podname | d(pod[0]) == pod[0]
+      when: podname | d(pname) == pname
       ansible.builtin.include_tasks: pod.yml
-      loop: "{{ (podman.pods | d({})).items() }}"
+      loop: "{{ podman.pods | d([]) }}"
       loop_control:
-        loop_var: pod
-        label: "{{ pod[0] }}"
+        loop_var: pname
+        label: "{{ pname }}"
       tags:
         - pod
         - pull

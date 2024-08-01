@@ -1,105 +1,127 @@
 ---
 # code: language=ansible
-- name: "Stat data directory of pod {{ pod[0] }}"
+- name: "Load vars for pod {{ pname }}"
+  ansible.builtin.include_vars: "pods/{{ pname }}.yml"
+
+- name: "Stat data directory of pod {{ pname }}"
   ansible.builtin.stat:
-    path: "{{ pod[1].data_basedir | d(data_basedir) }}/{{ pod[0] }}"
+    path: "{{ pod.data_basedir | d(data_basedir) }}/{{ pname }}"
   register: image_dir_stats
 
-- name: "Create data directory for pod {{ pod[0] }}"
+- name: "Create data directory for pod {{ pname }}"
   when: not image_dir_stats.stat.exists | d(false)
   block:
-    - name: "Create data directory for pod {{ pod[0] }}"
-      when: pod[1].zfs is not defined
+    - name: "Create data directory for pod {{ pname }}"
+      when: pod.zfs is not defined
+      become: true
       ansible.builtin.file:
-        path: "{{ pod[1].data_basedir | d(data_basedir) }}/{{ pod[0] }}"
+        path: "{{ pod.data_basedir | d(data_basedir) }}/{{ pname }}"
         state: directory
 
-    - name: "Create ZFS dataset for pod {{ pod[0] }}"
-      when: pod[1].zfs is defined
+    - name: "Create ZFS dataset for pod {{ pname }}"
+      when: pod.zfs is defined
+      become: true
       vars:
         zfs:
           datasets: >
-            { '{{ pod[0] }}':
-            { 'name': '{{ pod[1].zfs.pool }}/{{ pod[0] }}', 'state': 'present' } }
+            { '{{ pname }}':
+            { 'name': '{{ pod.zfs.pool }}/{{ pname }}', 'state': 'present' } }
       ansible.builtin.import_role:
         name: "{{ __fqcn_zfs__ }}"
 
-- name: "Create networks for pod {{ pod[0] }}"
+- name: "Create networks for pod {{ pname }}"
   vars:
-    use_pod: "{{ pod[0] }}"
+    use_pod: "{{ pname }}"
   ansible.builtin.include_tasks: network.yml
-  loop: "{{ pod[1].networks | d([]) }}"
+  loop: "{{ pod.networks | d([]) }}"
   loop_control:
     loop_var: podnet
 
 # wrapper around containers.podman.podman_pod
-- name: "Create pod {{ pod[0] }}"
+- name: "Create pod {{ pname }}"
+  become: true
   vars:
-    infra: "{{ true if (pod[1].share is defined and pod[1].share) else false }}"
+    infra: "{{ true if (pod.share is defined and pod.share) else false }}"
   containers.podman.podman_pod:
-    add_host: "{{ pod[1].add_host | d(omit) }}"
-    blkio_weight: "{{ pod[1].blkio_weight | d(omit) }}"
-    blkio_weight_device: "{{ pod[1].blkio_weight_device | d(omit) }}"
-    cgroup_parent: "{{ pod[1].cgroup_parent | d(omit) }}"
-    cpu_shares: "{{ pod[1].cpu_shares | d(omit) }}"
-    cpus: "{{ pod[1].cpus | d(omit) }}"
-    cpuset_cpus: "{{ pod[1].cpuset_cpus | d(omit) }}"
-    cpuset_mems: "{{ pod[1].cpuset_mems | d(omit) }}"
-    debug: "{{ pod[1].debug | d(omit) }}"
-    device: "{{ pod[1].device | d(omit) }}"
-    device_read_bps: "{{ pod[1].device_read_bps | d(omit) }}"
-    device_write_bps: "{{ pod[1].device_write_bps | d(omit) }}"
-    dns: "{{ pod[1].dns | d(omit) }}"
-    dns_opt: "{{ pod[1].dns_opt | d(omit) }}"
-    dns_search: "{{ pod[1].dns_search | d(omit) }}"
-    executable: "{{ pod[1].executable | d(omit) }}"
-    gidmap: "{{ pod[1].gidmap | d(omit) }}"
-    hostname: "{{ pod[1].hostname | d(pod[0]) }}"
+    add_host: "{{ pod.add_host | d(omit) }}"
+    blkio_weight: "{{ pod.blkio_weight | d(omit) }}"
+    blkio_weight_device: "{{ pod.blkio_weight_device | d(omit) }}"
+    cgroup_parent: "{{ pod.cgroup_parent | d(omit) }}"
+    cpu_shares: "{{ pod.cpu_shares | d(omit) }}"
+    cpus: "{{ pod.cpus | d(omit) }}"
+    cpuset_cpus: "{{ pod.cpuset_cpus | d(omit) }}"
+    cpuset_mems: "{{ pod.cpuset_mems | d(omit) }}"
+    debug: "{{ pod.debug | d(omit) }}"
+    device: "{{ pod.device | d(omit) }}"
+    device_read_bps: "{{ pod.device_read_bps | d(omit) }}"
+    device_write_bps: "{{ pod.device_write_bps | d(omit) }}"
+    dns: "{{ pod.dns | d(omit) }}"
+    dns_opt: "{{ pod.dns_opt | d(omit) }}"
+    dns_search: "{{ pod.dns_search | d(omit) }}"
+    executable: "{{ pod.executable | d(omit) }}"
+    gidmap: "{{ pod.gidmap | d(omit) }}"
+    hostname: "{{ pod.hostname | d(pname) }}"
     infra: "{{ true if infra else false }}"
-    infra_command: "{{ pod[1].infra_command | d(omit) if infra else omit }}"
-    infra_common_pidfile: "{{ pod[1].infra_common_pidfile | d(omit) if infra else omit }}"
-    infra_image: "{{ pod[1].infra_image | d(omit) if infra else omit }}"
-    infra_name: "{{ pod[1].infra_name | d(pod[0] + '_infra') if infra else omit }}"
-    ip: "{{ pod[1].ip | d(omit) }}"
-    label: "{{ pod[1].label | d(omit) }}"
-    label_file: "{{ pod[1].label_file | d(omit) }}"
-    mac_address: "{{ pod[1].mac_address | d(omit) }}"
-    memory: "{{ pod[1].memory | d(omit) }}"
-    memory_swap: "{{ pod[1].memory_swap | d(omit) }}"
-    name: "{{ pod[0] }}"
-    network: "{{ pod[1].network | d(omit) }}"
-    network_alias: "{{ pod[1].network_alias | d(omit) }}"
-    no_hosts: "{{ pod[1].no_hosts | d(omit) }}"
-    recreate: "{{ pod[1].recreate | d(omit) }}"
-    share: "{{ pod[1].share | d(omit) }}"
-    state: "{{ pod[1].state | d(omit) }}"
-    subgidname: "{{ pod[1].subgidname | d(omit) }}"
-    subuidname: "{{ pod[1].subuidname | d(omit) }}"
-    uidmap: "{{ pod[1].uidmap | d(omit) }}"
-    userns: "{{ pod[1].userns | d(omit) }}"
-    volume: "{{ pod[1].volume | d(omit) }}"
+    infra_command: "{{ pod.infra_command | d(omit) if infra else omit }}"
+    infra_common_pidfile: "{{ pod.infra_common_pidfile | d(omit) if infra else omit }}"
+    infra_image: "{{ pod.infra_image | d(omit) if infra else omit }}"
+    infra_name: "{{ pod.infra_name | d(pname + '_infra') if infra else omit }}"
+    ip: "{{ pod.ip | d(omit) }}"
+    label: "{{ pod.label | d(omit) }}"
+    label_file: "{{ pod.label_file | d(omit) }}"
+    mac_address: "{{ pod.mac_address | d(omit) }}"
+    memory: "{{ pod.memory | d(omit) }}"
+    memory_swap: "{{ pod.memory_swap | d(omit) }}"
+    name: "{{ pname }}"
+    network: "{{ pod.network | d(omit) }}"
+    network_alias: "{{ pod.network_alias | d(omit) }}"
+    no_hosts: "{{ pod.no_hosts | d(omit) }}"
+    publish: "{{ pod.publish | d(omit) }}"
+    recreate: "{{ pod.recreate | d(omit) }}"
+    share: "{{ pod.share | d(omit) }}"
+    state: "{{ pod.state | d(omit) }}"
+    subgidname: "{{ pod.subgidname | d(omit) }}"
+    subuidname: "{{ pod.subuidname | d(omit) }}"
+    uidmap: "{{ pod.uidmap | d(omit) }}"
+    userns: "{{ pod.userns | d(omit) }}"
+    volume: "{{ pod.volume | d(omit) }}"
   register: out
 
-- name: "Create containers for pod {{ pod[0] }}"
-  when: pod[1].containers is defined
+- name: "Create containers for pod {{ pname }}"
+  when: pod.containers is defined
   vars:
-    use_pod: "{{ pod[0] }}"
-    basedir: "{{ pod[1].data_basedir | d(data_basedir) + '/' + pod[0] | d('') }}"
+    use_pod: "{{ pname }}"
+    basedir: "{{ pod.data_basedir | d(data_basedir) + '/' + pname | d('') }}"
   ansible.builtin.include_tasks: container.yml
-  loop: "{{ pod[1].containers.items() }}"
+  loop: "{{ pod.containers.items() }}"
   loop_control:
     loop_var: container
-    label: container[0]
+    label: "{{ container[0] }}"
   tags:
     - pull
 
-- name: Generate systemd unit file for pod
-  when: pod[1].generate_systemd is defined
+- name: "Merge systemd properties for pod {{ pname }} with role defaults"
+  ansible.builtin.set_fact:
+    pod_systemd: "{{ pod.generate_systemd | combine(podman_systemd_defaults) }}"
+
+- name: "Generate systemd unit file for pod {{ pname }}"
+  when: pod_systemd.create_units
+  become: true
   containers.podman.podman_generate_systemd:
-    name: "{{ pod[0] }}"
-    new: true
+    name: "{{ pname }}"
+    new: "{{ pod_systemd.new }}"
     no_header: true
-    dest: "{{ pod[1].generate_systemd.dest | d('/etc/systemd/system') }}"
-    requires: "{{ pod[1].generate_systemd.requires | d(omit) }}"
+    dest: "{{ pod_systemd.dest }}"
+    requires: "{{ pod_systemd.requires | d(omit) }}"
   notify: "Execute systemd daemon-reload"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: "Start and handle autostart for systemd unit for pod {{ pname }}"
+  when: pod_systemd.start
+        or pod_systemd.enable
+  become: true
+  ansible.builtin.systemd:
+    name: "pod-{{ pname }}"
+    state: "{{ 'started' if pod_systemd.start else omit }}"
+    enabled: "{{ true if pod_systemd.enable else omit }}"
   ignore_errors: "{{ ansible_check_mode }}"
