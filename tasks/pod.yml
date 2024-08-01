@@ -1,7 +1,7 @@
 ---
 # code: language=ansible
 - name: "Load vars for pod {{ pname }}"
-  ansible.builtin.include_vars: "pods/{{ pname }}.yml"
+  ansible.builtin.include_vars: "{{ pod_yml_path }}/{{ pname }}.yml"
 
 - name: "Stat data directory of pod {{ pname }}"
   ansible.builtin.stat:

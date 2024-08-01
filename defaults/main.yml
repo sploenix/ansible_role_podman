@@ -16,3 +16,5 @@ podman_systemd_defaults:
   new: true
   wants: network-online.target
   after: network-online.target
+
+pod_yml_path: "../../../../../files/pods"
