@@ -19,29 +19,54 @@
       register: image_pull_result
       tags: pull
 
+    - name: "Install file templates for container {{ container[0] }}"
+      ansible.builtin.template:
+        src: "{{ file.src }}"
+        dest: "{{ file.dest }}"
+        mode: "{{ file.mode | d(omit) }}"
+        owner: "{{ file.owner | d(omit) }}"
+        group: "{{ file.group | d(omit) }}"
+      loop: "{{ c.templates | d([]) }}"
+      loop_control:
+        loop_var: file
+        label: "{{ file.dest | d(file) }}"
+
+    - name: "Install inline file templates for container {{ container[0] }}"
+      ansible.builtin.copy:
+        dest: "{{ file.dest }}"
+        content: "{{ file.content }}"
+        mode: "{{ file.mode | d(omit) }}"
+        owner: "{{ file.owner | d(omit) }}"
+        group: "{{ file.group | d(omit) }}"
+      loop: "{{ c.copy_template | d([]) }}"
+      loop_control:
+        loop_var: file
+        label: "{{ file.dest | d(file) }}"
+
+    - name: "Create volumes for container {{ container[0] }}"
+      when: "'__file__' not in container_volume and c.volume != []"
+      become: true
+      ansible.builtin.file:
+        path: "{{ (container_volume | split(':'))[0] | replace('__basedir__', basedir | d('')) | replace('__file__', '') }}"
+        state: directory
+      loop: "{{ c.volume | d([]) | select() }}"
+      loop_control:
+        loop_var: container_volume
+      # this will fail if the volume exists and is not a dir
+      # this is ok - error handling will be added later
+      ignore_errors: true
+
     - name: "Update volume strings for container {{ container[0] }}"
       when: c.volume is defined
       vars:
         volumes: >
           [
           {% for v in c.volume | select() %}
-          '{{ v | replace("__basedir__", basedir | d("")) }}',
+          '{{ v | replace("__basedir__", basedir | d("")) | replace('__file__', '') }}',
           {% endfor %}
           ]
       ansible.builtin.set_fact:
         c: "{{ c | combine({'volume': volumes}, recursive=true) }}"
-
-    - name: "Create volumes for container {{ container[0] }}"
-      become: true
-      ansible.builtin.file:
-        path: "{{ (container_volume | split(':'))[0] }}"
-        state: directory
-      loop: "{{ (c.volume | select()) | d([]) }}"
-      loop_control:
-        loop_var: container_volume
-      # this will fail if the volume exists and is not a dir
-      # this is ok - error handling will be added later
-      ignore_errors: true
 
     # wrapper for 
     # https://docs.ansible.com/ansible/latest/collections/containers/podman/podman_container_module.html#ansible-collections-containers-podman-podman-container-module
