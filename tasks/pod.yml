@@ -102,7 +102,7 @@
 
 - name: "Merge systemd properties for pod {{ pname }} with role defaults"
   ansible.builtin.set_fact:
-    pod_systemd: "{{ pod.generate_systemd | combine(podman_systemd_defaults) }}"
+    pod_systemd: "{{ (pod.generate_systemd | d({})) | combine(podman_systemd_defaults) }}"
 
 - name: "Generate systemd unit file for pod {{ pname }}"
   when: pod_systemd.create_units

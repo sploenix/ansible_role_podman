@@ -11,6 +11,14 @@
         call_from: podman role
       tags: install
 
+    - name: "Configure custom registry for DockerHub"
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/containers/registries.conf.d/custom.conf
+        content: |
+          # {{ role_managed }}
+          unqualified-search-registries = ['docker.io']
+
     - name: "Configure podman networks"
       when: network | d(podnet.name) == podnet.name
       ansible.builtin.include_tasks: network.yml
@@ -19,12 +27,6 @@
         loop_var: podnet
         label: "{{ podnet.name }}"
       tags: network
-
-#    - name: "Verify that pause image is available"
-#      become: true
-#      containers.podman.podman_image:
-#        name: "podman-pause"
-#        pull: true
 
     - name: "Configure pods"
       when: podname | d(pname) == pname

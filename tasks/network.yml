@@ -1,6 +1,7 @@
 ---
 # code: language=ansible
 - name: "Configure podman network instance"
+  become: true
   tags: network
   block:
     - name: "Configure podman network {{ podnet.name }}"

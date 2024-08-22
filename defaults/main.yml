@@ -1,9 +1,11 @@
 ---
 packages_present_podman:
+  - aardvark-dns
   - catatonit
   - iptables
   - netavark
   - podman
+  - uidmap
 
 # can be overridden for every pod
 data_basedir: /podman
