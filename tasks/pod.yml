@@ -20,13 +20,12 @@
 
     - name: "Create ZFS dataset for pod {{ pname }}"
       when: pod.zfs is defined
-      become: true
       vars:
         zfs:
           datasets: >
             { '{{ pname }}':
             { 'name': '{{ pod.zfs.pool }}/{{ pname }}', 'state': 'present' } }
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: "{{ __fqcn_zfs__ }}"
 
 - name: "Create networks for pod {{ pname }}"

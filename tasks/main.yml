@@ -4,7 +4,7 @@
   when: podman is defined
   block:
     - name: "Install required packages"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: "{{ __fqcn_packages__ }}"
       vars:
         packages_present: "{{ packages_present_podman }}"

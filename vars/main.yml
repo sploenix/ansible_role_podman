@@ -1,5 +1,5 @@
 ---
 # change this to the collection, where you cloned the packages role
-__fqcn_packages__: ane.base.apt
+#__fqcn_packages__: my_namespace.my_collection.my_role
 # change this to the collection, where you cloned the zfs role
-__fqcn_zfs__: ane.base.zfs
+#__fqcn_zfs__: my_namespace.my_collection.zfs

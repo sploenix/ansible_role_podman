@@ -22,7 +22,7 @@
     - name: "Install file templates for container {{ container[0] }}"
       ansible.builtin.template:
         src: "{{ file.src }}"
-        dest: "{{ file.dest }}"
+        dest: "{{ file.dest | replace('__basedir__', basedir | d('')) | replace('__file__', '') }}"
         mode: "{{ file.mode | d(omit) }}"
         owner: "{{ file.owner | d(omit) }}"
         group: "{{ file.group | d(omit) }}"
@@ -33,7 +33,7 @@
 
     - name: "Install inline file templates for container {{ container[0] }}"
       ansible.builtin.copy:
-        dest: "{{ file.dest }}"
+        dest: "{{ file.dest | replace('__basedir__', basedir | d('')) | replace('__file__', '') }}"
         content: "{{ file.content }}"
         mode: "{{ file.mode | d(omit) }}"
         owner: "{{ file.owner | d(omit) }}"
@@ -151,8 +151,10 @@
         oom_kill_disable: "{{ c.oom_kill_disable | d(omit) }}"
         oom_score_adj: "{{ c.oom_score_adj | d(omit) }}"
         pid: "{{ c.pid | d(omit) }}"
+        pid_file: "{{ c.pid_file | d(omit) }}"
         pids_limit: "{{ c.pids_limit | d(omit) }}"
         pod: "{{ c.pod | d(use_pod) | d(omit) }}"
+        #pod_id_file: "{{ c.pod_id_file | d('/run/pod-' + use_pod + '.pod-id') }}"
         privileged: "{{ c.privileged | d(omit) }}"
         publish: "{{ c.publish | d(omit) }}"
         publish_all: "{{ c.publish_all | d(omit) }}"
